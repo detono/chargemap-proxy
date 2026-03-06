@@ -1,5 +1,3 @@
-// src/ocm/sync.rs
-
 use std::sync::Arc;
 use tokio::time::{interval, Duration};
 use tracing::{info, error};
@@ -38,8 +36,6 @@ async fn upsert_stations(state: &Arc<AppState>, stations: Vec<crate::ocm::types:
     let mut count = 0;
 
     for station in &stations {
-        let raw_json = serde_json::to_string(station)?;
-
         // station-level let bindings
         let operator_id    = station.operator_info.as_ref().and_then(|o| o.id);
         let usage_type_id    = station.usage_type.as_ref().and_then(|u| u.id);
@@ -64,13 +60,12 @@ async fn upsert_stations(state: &Arc<AppState>, stations: Vec<crate::ocm::types:
                 access_comments, related_url, contact_telephone,
                 number_of_points, general_comments,
                 is_recently_verified, date_last_verified,
-                date_last_status_update, date_created,
-                raw_json, cached_at
+                date_last_status_update, date_created, cached_at
             ) VALUES (
                 ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9,
                 ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17,
                 ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26,
-                ?27, datetime('now')
+                datetime('now')
             )
             ON CONFLICT(id) DO UPDATE SET
                 uuid                    = excluded.uuid,
@@ -98,7 +93,6 @@ async fn upsert_stations(state: &Arc<AppState>, stations: Vec<crate::ocm::types:
                 date_last_verified      = excluded.date_last_verified,
                 date_last_status_update = excluded.date_last_status_update,
                 date_created            = excluded.date_created,
-                raw_json                = excluded.raw_json,
                 cached_at               = datetime('now')
             "#,
             station.id,
@@ -127,7 +121,6 @@ async fn upsert_stations(state: &Arc<AppState>, stations: Vec<crate::ocm::types:
             station.date_last_verified,
             station.date_last_status_update,
             station.date_created,
-            raw_json,
         )
             .execute(&mut *tx)
             .await?;

@@ -25,11 +25,10 @@ pub struct LocationConfig {
     pub radius_km: u32,
 }
 
-pub fn load() -> AppConfig {
+pub fn load() -> Result<AppConfig, config::ConfigError> {
     config::Config::builder()
-        .add_source(config::File::with_name("config"))
-        .build()
-        .expect("Failed to read config.toml")
+        .add_source(config::File::with_name("config").required(false))
+        .add_source(config::Environment::with_prefix("APP").separator("_"))
+        .build()?
         .try_deserialize()
-        .expect("Failed to parse config.toml")
 }

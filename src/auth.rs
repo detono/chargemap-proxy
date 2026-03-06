@@ -1,3 +1,4 @@
+use crate::AppState;
 use axum::{
     body::Body,
     extract::State,
@@ -6,23 +7,21 @@ use axum::{
     response::Response,
 };
 use std::sync::Arc;
-use std::env;
-use crate::AppState;
 
 pub async fn require_api_key(
-    State(_state): State<Arc<AppState>>,
+    State(state): State<Arc<AppState>>,
     req: Request<Body>,
     next: Next,
 ) -> Result<Response, StatusCode> {
-    let expected = env::var("APP_API_KEY").expect("APP_API_KEY must be set");
+    let auth_header = req.headers()
+        .get("X-API-Key")
+        .and_then(|h| h.to_str().ok());
 
-    let provided = req
-        .headers()
-        .get("x-api-key")
-        .and_then(|v| v.to_str().ok());
-
-    match provided {
-        Some(key) if key == expected => Ok(next.run(req).await),
-        _ => Err(StatusCode::UNAUTHORIZED),
+    if let Some(key) = auth_header {
+        if key == state.app_api_key {
+            return Ok(next.run(req).await);
+        }
     }
+
+    Err(StatusCode::UNAUTHORIZED)
 }

@@ -37,9 +37,6 @@ CREATE TABLE IF NOT EXISTS stations (
     date_last_status_update TEXT,
     date_created            TEXT,
 
-    -- Full raw JSON blob (so we never lose data / easy to re-parse)
-    raw_json                TEXT NOT NULL,
-
     -- Cache bookkeeping
     cached_at               TEXT NOT NULL DEFAULT (datetime('now'))
 );
