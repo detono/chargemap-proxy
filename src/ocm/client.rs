@@ -14,7 +14,7 @@ pub async fn fetch_stations(
     distance_km: u32,
 ) -> Result<Vec<OcmStation>> {
     let url = format!(
-        "{}?output=json&latitude={}&longitude={}&distance={}&distanceunit=KM&maxresults=5000&compact=false&verbose=true&key={}",
+        "{}?output=json&latitude={}&longitude={}&distance={}&distanceunit=KM&maxresults=500&compact=false&verbose=true&key={}",
         OCM_BASE_URL, latitude, longitude, distance_km, api_key
     );
 
