@@ -1,1 +1,47 @@
-/target
+# Rust
+/target/
+debug/
+release/
+
+# Cargo
+# Keep Cargo.lock for applications (recommended)
+# Remove the next line if you want to commit it
+# Cargo.lock
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Local environment files
+.env
+.env.local
+
+# Config overrides
+config.local.toml
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+
+# Docker
+docker-compose.override.yml
+
+# Coverage / profiling
+*.profraw
+*.profdata
+coverage/
+
+# Rustfmt backup
+**/*.rs.bk
