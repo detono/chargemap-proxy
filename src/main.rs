@@ -63,14 +63,17 @@ async fn main() -> anyhow::Result<()> {
     });
 
     // Build router
-    let app = Router::new()
+    let protected = Router::new()
         .merge(routes::station_routes())
         .merge(routes::admin_routes())
-        .merge(routes::health_routes())
         .layer(middleware::from_fn_with_state(
             state.clone(),
             auth::require_api_key,
-        ))
+        ));
+
+    let app = Router::new()
+        .merge(routes::health_routes())  
+        .merge(protected)
         .layer(TraceLayer::new_for_http());
 
     let addr = format!("0.0.0.0:{}", cfg.server.port);
