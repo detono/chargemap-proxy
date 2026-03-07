@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n                    INSERT INTO connections (\n                        id, station_id,\n                        connection_type_id, connection_type, formal_name,\n                        level_id, level_title, is_fast_charge,\n                        current_type_id, current_type,\n                        amps, voltage, power_kw, quantity,\n                        status_type_id, is_operational, comments\n                    ) VALUES (\n                        ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8,\n                        ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17\n                    )\n                    ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 17
+    },
+    "nullable": []
+  },
+  "hash": "cbb30ec619ad3bfcf2d64cb60969800c98140baa671bc8ee8c0995abac850468"
+}

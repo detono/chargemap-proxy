@@ -1,0 +1,6 @@
+.env
+target/
+.git/
+.idea/
+*.db
+*.db-journal

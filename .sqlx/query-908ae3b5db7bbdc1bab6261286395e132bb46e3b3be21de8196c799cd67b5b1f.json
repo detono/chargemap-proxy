@@ -1,0 +1,80 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT\n            id, address_title, address_line1, town, postcode,\n            latitude, longitude, operator_title, usage_cost,\n            is_operational, number_of_points\n        FROM stations\n        WHERE (?1 = 0 OR is_operational = 1)\n          AND (?2 IS NULL OR latitude >= ?2)\n          AND (?3 IS NULL OR latitude <= ?3)\n          AND (?4 IS NULL OR longitude >= ?4)\n          AND (?5 IS NULL OR longitude <= ?5)\n        ORDER BY id\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Int64"
+      },
+      {
+        "name": "address_title",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "address_line1",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "town",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "postcode",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "latitude",
+        "ordinal": 5,
+        "type_info": "Float"
+      },
+      {
+        "name": "longitude",
+        "ordinal": 6,
+        "type_info": "Float"
+      },
+      {
+        "name": "operator_title",
+        "ordinal": 7,
+        "type_info": "Text"
+      },
+      {
+        "name": "usage_cost",
+        "ordinal": 8,
+        "type_info": "Text"
+      },
+      {
+        "name": "is_operational",
+        "ordinal": 9,
+        "type_info": "Int64"
+      },
+      {
+        "name": "number_of_points",
+        "ordinal": 10,
+        "type_info": "Int64"
+      }
+    ],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "908ae3b5db7bbdc1bab6261286395e132bb46e3b3be21de8196c799cd67b5b1f"
+}

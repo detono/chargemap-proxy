@@ -1,12 +1,39 @@
-FROM rust:1.76 AS builder
+# Stage 1: Builder
+# The --platform flag ensures we use the right Rust image for the target
+FROM --platform=$BUILDPLATFORM rust:1.76 AS builder
 WORKDIR /app
-COPY . .
-RUN cargo build --release
+ENV SQLX_OFFLINE=true
 
+# 1. Pre-fetch dependencies (This is the secret to fast builds)
+COPY Cargo.toml Cargo.lock ./
+# We create a dummy main.rs to compile only the dependencies first
+RUN mkdir src && echo "fn main() {}" > src/main.rs
+RUN cargo build --release
+RUN rm -rf src
+
+# 2. Now copy your actual code
+COPY . .
+
+# The --mount here caches the 'target' and 'registry' folders
+# This makes your Mac's buildx process MUCH faster
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/app/target \
+    cargo build --release && \
+    # This finds the binary regardless of the specific architecture subfolder
+    cp $(find target -name chargemap-proxy | grep release | head -n 1) /app/chargemap-proxy-bin
+
+# Stage 2: Runtime
 FROM ubuntu:24.04
 WORKDIR /app
+
+# Necessary for HTTPS calls to OpenChargeMap
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /app/target/release/chargemap-proxy .
+
+# Copy the binary we renamed in the builder stage
+COPY --from=builder /app/chargemap-proxy-bin ./chargemap-proxy
 COPY config.toml .
+
 EXPOSE 8082
+
+# We point to the binary
 CMD ["./chargemap-proxy"]

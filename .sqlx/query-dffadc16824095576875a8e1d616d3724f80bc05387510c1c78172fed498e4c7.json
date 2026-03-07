@@ -1,0 +1,134 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT\n            s.id as station_id, s.address_title, s.address_line1, s.town, s.postcode,\n            s.latitude, s.longitude, s.operator_title, s.usage_cost,\n            s.is_operational as station_operational, s.number_of_points,\n            c.connection_type, c.formal_name, c.power_kw, c.amps, c.voltage,\n            c.current_type, c.is_fast_charge, c.is_operational as conn_operational, c.quantity\n        FROM stations s\n        LEFT JOIN connections c ON s.id = c.station_id\n        WHERE s.id = ?1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "station_id",
+        "ordinal": 0,
+        "type_info": "Int64"
+      },
+      {
+        "name": "address_title",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "address_line1",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "town",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "postcode",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "latitude",
+        "ordinal": 5,
+        "type_info": "Float"
+      },
+      {
+        "name": "longitude",
+        "ordinal": 6,
+        "type_info": "Float"
+      },
+      {
+        "name": "operator_title",
+        "ordinal": 7,
+        "type_info": "Text"
+      },
+      {
+        "name": "usage_cost",
+        "ordinal": 8,
+        "type_info": "Text"
+      },
+      {
+        "name": "station_operational",
+        "ordinal": 9,
+        "type_info": "Int64"
+      },
+      {
+        "name": "number_of_points",
+        "ordinal": 10,
+        "type_info": "Int64"
+      },
+      {
+        "name": "connection_type",
+        "ordinal": 11,
+        "type_info": "Text"
+      },
+      {
+        "name": "formal_name",
+        "ordinal": 12,
+        "type_info": "Text"
+      },
+      {
+        "name": "power_kw",
+        "ordinal": 13,
+        "type_info": "Float"
+      },
+      {
+        "name": "amps",
+        "ordinal": 14,
+        "type_info": "Float"
+      },
+      {
+        "name": "voltage",
+        "ordinal": 15,
+        "type_info": "Float"
+      },
+      {
+        "name": "current_type",
+        "ordinal": 16,
+        "type_info": "Text"
+      },
+      {
+        "name": "is_fast_charge",
+        "ordinal": 17,
+        "type_info": "Int64"
+      },
+      {
+        "name": "conn_operational",
+        "ordinal": 18,
+        "type_info": "Int64"
+      },
+      {
+        "name": "quantity",
+        "ordinal": 19,
+        "type_info": "Int64"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "dffadc16824095576875a8e1d616d3724f80bc05387510c1c78172fed498e4c7"
+}
