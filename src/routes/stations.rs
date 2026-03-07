@@ -257,3 +257,54 @@ fn haversine_km(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> f64 {
         + lat1.to_radians().cos() * lat2.to_radians().cos() * (dlon / 2.0).sin().powi(2);
     r * 2.0 * a.sqrt().asin()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_haversine_same_point() {
+        let dist = haversine_km(51.0543, 3.7174, 51.0543, 3.7174);
+        assert_eq!(dist, 0.0);
+    }
+
+    #[test]
+    fn test_haversine_ghent_to_brussels() {
+        let dist = haversine_km(51.0543, 3.7174, 50.8503, 4.3517);
+        assert!((dist - 50.0).abs() < 2.0, "Expected ~50km, got {}", dist);
+    }
+
+    #[test]
+    fn test_format_address_full() {
+        let result = format_address(
+            &Some("Kiezelweg".to_string()),
+            &Some("Nijlen".to_string()),
+            &Some("2560".to_string()),
+            &None,
+        );
+        assert_eq!(result, Some("Kiezelweg, Nijlen, 2560".to_string()));
+    }
+
+    #[test]
+    fn test_format_address_no_postcode() {
+        let result = format_address(
+            &Some("Kiezelweg".to_string()),
+            &Some("Nijlen".to_string()),
+            &None,
+            &None,
+        );
+        assert_eq!(result, Some("Kiezelweg, Nijlen".to_string()));
+    }
+
+    #[test]
+    fn test_format_address_falls_back_to_title() {
+        let result = format_address(&None, &None, &None, &Some("Some Title".to_string()));
+        assert_eq!(result, Some("Some Title".to_string()));
+    }
+
+    #[test]
+    fn test_format_address_all_none() {
+        let result = format_address(&None, &None, &None, &None);
+        assert_eq!(result, None);
+    }
+}
