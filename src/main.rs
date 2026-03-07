@@ -66,6 +66,7 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         .merge(routes::station_routes())
         .merge(routes::admin_routes())
+        .merge(routes::health_routes())
         .layer(middleware::from_fn_with_state(
             state.clone(),
             auth::require_api_key,
