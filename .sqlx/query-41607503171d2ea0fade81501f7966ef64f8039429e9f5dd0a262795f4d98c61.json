@@ -6,7 +6,7 @@
       {
         "name": "station_id",
         "ordinal": 0,
-        "type_info": "Int64"
+        "type_info": "Integer"
       },
       {
         "name": "connection_type",
@@ -41,17 +41,17 @@
       {
         "name": "is_fast_charge",
         "ordinal": 7,
-        "type_info": "Int64"
+        "type_info": "Integer"
       },
       {
         "name": "is_operational",
         "ordinal": 8,
-        "type_info": "Int64"
+        "type_info": "Integer"
       },
       {
         "name": "quantity",
         "ordinal": 9,
-        "type_info": "Int64"
+        "type_info": "Integer"
       }
     ],
     "parameters": {

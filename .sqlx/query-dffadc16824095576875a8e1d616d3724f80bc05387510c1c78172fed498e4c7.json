@@ -6,7 +6,7 @@
       {
         "name": "station_id",
         "ordinal": 0,
-        "type_info": "Int64"
+        "type_info": "Integer"
       },
       {
         "name": "address_title",
@@ -51,12 +51,12 @@
       {
         "name": "station_operational",
         "ordinal": 9,
-        "type_info": "Int64"
+        "type_info": "Integer"
       },
       {
         "name": "number_of_points",
         "ordinal": 10,
-        "type_info": "Int64"
+        "type_info": "Integer"
       },
       {
         "name": "connection_type",
@@ -91,17 +91,17 @@
       {
         "name": "is_fast_charge",
         "ordinal": 17,
-        "type_info": "Int64"
+        "type_info": "Integer"
       },
       {
         "name": "conn_operational",
         "ordinal": 18,
-        "type_info": "Int64"
+        "type_info": "Integer"
       },
       {
         "name": "quantity",
         "ordinal": 19,
-        "type_info": "Int64"
+        "type_info": "Integer"
       }
     ],
     "parameters": {
