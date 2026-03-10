@@ -14,6 +14,10 @@ RUN cargo build --release
 
 # Stage 2: Runtime
 FROM ubuntu:24.04
+
+LABEL org.opencontainers.image.source="https://github.com/detono/chargemap-proxy"
+LABEL org.opencontainers.image.description="OpenChargeMap Proxy API"
+
 WORKDIR /app
 
 # Install standard certificates and curl
