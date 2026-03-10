@@ -63,4 +63,4 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: detono/chargemap-proxy 
-          readme-filepath: ./README-docker.md
+          readme-filepath: ./README.md
