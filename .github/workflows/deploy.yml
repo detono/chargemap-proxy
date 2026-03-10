@@ -54,14 +54,13 @@ jobs:
             detono/chargemap-proxy:latest
             ghcr.io/${{ github.repository }}:${{ steps.version.outputs.VERSION }}
             ghcr.io/${{ github.repository }}:latest
-	  cache-from: type=gha
+          cache-from: type=gha
           cache-to: type=gha,mode=max
-
 
       - name: Update Docker Hub Description
         uses: peter-evans/dockerhub-description@v5
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: detono/chargemap-proxy # Or use ${{ github.repository }} if casing matches
+          repository: detono/chargemap-proxy 
           readme-filepath: ./README-docker.md
