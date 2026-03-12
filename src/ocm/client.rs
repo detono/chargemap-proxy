@@ -12,11 +12,16 @@ pub async fn fetch_stations(
     latitude: f64,
     longitude: f64,
     distance_km: u32,
+    modified_since: Option<&str>,
 ) -> Result<Vec<OcmStation>> {
-    let url = format!(
+    let mut url = format!(
         "{}?output=json&latitude={}&longitude={}&distance={}&distanceunit=KM&maxresults=500&compact=false&verbose=true&key={}",
         OCM_BASE_URL, latitude, longitude, distance_km, api_key
     );
+
+    if let Some(since) = modified_since {
+        url.push_str(&format!("&modifiedsince={}", since));
+    }
 
     let stations: Vec<OcmStation> = client
         .get(&url)

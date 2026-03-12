@@ -45,3 +45,4 @@ coverage/
 
 # Rustfmt backup
 **/*.rs.bk
+/data/
