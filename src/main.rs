@@ -1,6 +1,7 @@
 use axum::{Router, middleware};
 use dotenvy::dotenv;
 use std::env;
+use std::str::FromStr;
 use std::sync::Arc;
 use anyhow::Context;
 use tower_http::trace::TraceLayer;
@@ -12,6 +13,9 @@ mod models;
 mod ocm;
 mod routes;
 mod error;
+mod flanders;
+mod osm;
+mod utils;
 
 pub struct AppState {
     pub ocm_api_key: String,
@@ -44,7 +48,12 @@ async fn main() -> anyhow::Result<()> {
     let database_url = env::var("DATABASE_URL").context("DATABASE_URL must be set .env")?;
 
     // DB pool
-    let db = sqlx::SqlitePool::connect(&database_url)
+    let db = sqlx::sqlite::SqlitePoolOptions::new()
+        .connect_with(
+            sqlx::sqlite::SqliteConnectOptions::from_str(&database_url)?
+                .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal)
+                .synchronous(sqlx::sqlite::SqliteSynchronous::Normal)
+        )
         .await
         .context("Failed to connect to SQLite")?;
 
@@ -61,6 +70,8 @@ async fn main() -> anyhow::Result<()> {
         config: cfg.clone(),
         http_client: reqwest::Client::new(),
     });
+
+
 
     // Build router
     let protected = Router::new()
@@ -79,7 +90,31 @@ async fn main() -> anyhow::Result<()> {
     let addr = format!("0.0.0.0:{}", cfg.server.port);
     let listener = tokio::net::TcpListener::bind(&addr).await?;
     tracing::info!("Listening on http://{}", addr);
-    tokio::spawn(ocm::sync::start_sync_loop(state.clone()));
+
+    let startup_state = state.clone();
+    tokio::spawn(async move {
+        // Sequenced startup syncs
+        match flanders::sync::sync_flanders(startup_state.clone()).await {
+            Ok(n)  => tracing::info!("Flanders sync complete: {} stations", n),
+            Err(e) => tracing::error!("Flanders sync failed: {e}"),
+        }
+        match osm::sync::sync_osm(startup_state.clone()).await {
+            Ok(n)  => tracing::info!("OSM sync complete: {} stations", n),
+            Err(e) => tracing::error!("OSM sync failed: {e}"),
+        }
+        match ocm::sync::sync_once(&startup_state).await {
+            Ok(n)  => tracing::info!("OCM sync complete: {} stations", n),
+            Err(e) => tracing::error!("OCM sync failed: {e}"),
+        }
+
+        // Start loops only after initial sync is done
+        let ocm = startup_state.clone();
+        let osm = startup_state.clone();
+        tokio::join!(
+            ocm::sync::start_sync_loop(ocm),
+            osm::sync::start_sync_loop(osm),
+        );
+    });
 
     axum::serve(listener, app.with_state(state.clone())).await?;
 

@@ -2,6 +2,9 @@
 
 -- SQLite can't ALTER column constraints, so we rename + recreate stations and connections
 
+-- 0. FK Checks ON
+PRAGMA foreign_keys = ON;
+
 -- 1. Rename existing tables
 ALTER TABLE connections RENAME TO connections_old;
 ALTER TABLE stations RENAME TO stations_old;
@@ -96,11 +99,12 @@ INSERT INTO connections (
     status_type_id, is_operational, comments
 )
 SELECT
-    id, station_id, connection_type_id, connection_type,
-    formal_name, level_id, level_title, is_fast_charge, current_type_id,
-    current_type, amps, voltage, power_kw, quantity,
-    status_type_id, is_operational, comments
-FROM connections_old;
+    c.id, s.id, c.connection_type_id, c.connection_type,
+    c.formal_name, c.level_id, c.level_title, c.is_fast_charge, c.current_type_id,
+    c.current_type, c.amps, c.voltage, c.power_kw, c.quantity,
+    c.status_type_id, c.is_operational, c.comments
+FROM connections_old c
+JOIN stations s ON s.ocm_id = c.station_id;
 
 -- 5. Source tracking tables
 CREATE TABLE sync_state (
@@ -125,10 +129,10 @@ FROM stations
 WHERE ocm_id IS NOT NULL;
 
 -- 6. Recreate indexes
-CREATE INDEX idx_stations_location ON stations (latitude, longitude);
-CREATE INDEX idx_stations_country  ON stations (country_iso);
-CREATE INDEX idx_connections_station ON connections (station_id);
-CREATE INDEX idx_station_sources_station_id ON station_sources (station_id);
+CREATE INDEX IF NOT EXISTS idx_stations_location ON stations (latitude, longitude);
+CREATE INDEX IF NOT EXISTS idx_stations_country  ON stations (country_iso);
+CREATE INDEX IF NOT EXISTS idx_connections_station ON connections (station_id);
+CREATE INDEX IF NOT EXISTS idx_station_sources_station_id ON station_sources (station_id);
 
 -- 7. Drop old tables
 DROP TABLE connections_old;

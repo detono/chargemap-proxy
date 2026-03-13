@@ -5,15 +5,35 @@ use crate::AppState;
 use crate::ocm::client::fetch_stations;
 
 pub async fn sync_once(state: &Arc<AppState>) -> anyhow::Result<usize> {
+    let last_synced: Option<String> = sqlx::query_scalar!(
+        "SELECT last_synced_at FROM sync_state WHERE source = 'ocm'"
+    )
+    .fetch_optional(&state.db)
+    .await?;
+
+
+
     let stations = fetch_stations(
         &state.http_client,
         &state.ocm_api_key,
         state.config.location.latitude,
         state.config.location.longitude,
         state.config.location.radius_km,
+        last_synced.as_deref()
     ).await?;
 
     let count = upsert_stations(state, stations).await?;
+
+    sqlx::query!(
+        r#"
+        INSERT INTO sync_state (source, last_synced_at)
+        VALUES ('ocm', datetime('now'))
+        ON CONFLICT(source) DO UPDATE SET last_synced_at = datetime('now')
+        "#
+    )
+    .execute(&state.db)
+    .await?;
+
     Ok(count)
 }
 
@@ -52,7 +72,7 @@ async fn upsert_stations(state: &Arc<AppState>, stations: Vec<crate::ocm::types:
         sqlx::query!(
             r#"
             INSERT INTO stations (
-                id, uuid, operator_id, operator_title,
+                ocm_id, uuid, operator_id, operator_title,
                 usage_type_id, usage_type_title, usage_cost,
                 status_type_id, is_operational,
                 address_title, address_line1, town, state_or_province,
@@ -60,14 +80,15 @@ async fn upsert_stations(state: &Arc<AppState>, stations: Vec<crate::ocm::types:
                 access_comments, related_url, contact_telephone,
                 number_of_points, general_comments,
                 is_recently_verified, date_last_verified,
-                date_last_status_update, date_created, cached_at
+                date_last_status_update, date_created,
+                primary_source, cached_at
             ) VALUES (
                 ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9,
                 ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17,
                 ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26,
-                datetime('now')
+                'ocm', datetime('now')
             )
-            ON CONFLICT(id) DO UPDATE SET
+            ON CONFLICT(ocm_id) DO UPDATE SET
                 uuid                    = excluded.uuid,
                 operator_id             = excluded.operator_id,
                 operator_title          = excluded.operator_title,
@@ -95,37 +116,42 @@ async fn upsert_stations(state: &Arc<AppState>, stations: Vec<crate::ocm::types:
                 date_created            = excluded.date_created,
                 cached_at               = datetime('now')
             "#,
-            station.id,
-            station.uuid,
-            operator_id,
-            operator_title,
-            usage_type_id,
-            usage_type_title,
-            station.usage_cost,
-            status_type_id,
-            is_operational,
-            station.address_info.title,
-            station.address_info.address_line1,
-            station.address_info.town,
-            station.address_info.state_or_province,
-            station.address_info.postcode,
-            country_iso,
-            station.address_info.latitude,
-            station.address_info.longitude,
-            station.address_info.access_comments,
-            station.address_info.related_url,
+            station.id, station.uuid, operator_id, operator_title,
+            usage_type_id, usage_type_title, station.usage_cost,
+            status_type_id, is_operational,
+            station.address_info.title, station.address_info.address_line1,
+            station.address_info.town, station.address_info.state_or_province,
+            station.address_info.postcode, country_iso,
+            station.address_info.latitude, station.address_info.longitude,
+            station.address_info.access_comments, station.address_info.related_url,
             station.address_info.contact_telephone1,
-            station.number_of_points,
-            station.general_comments,
-            station.is_recently_verified,
-            station.date_last_verified,
-            station.date_last_status_update,
-            station.date_created,
+            station.number_of_points, station.general_comments,
+            station.is_recently_verified, station.date_last_verified,
+            station.date_last_status_update, station.date_created,
         )
             .execute(&mut *tx)
             .await?;
 
-        sqlx::query!("DELETE FROM connections WHERE station_id = ?1", station.id)
+        let internal_id = sqlx::query_scalar!(
+            "SELECT id FROM stations WHERE ocm_id = ?1",
+            station.id
+        )
+            .fetch_one(&mut *tx)
+            .await?;
+
+        sqlx::query!(
+            r#"
+            INSERT INTO station_sources (station_id, source, source_id)
+            VALUES (?1, 'ocm', ?2)
+            ON CONFLICT(source, source_id) DO UPDATE SET last_seen = datetime('now')
+            "#,
+            internal_id,
+            station.id,
+        )
+            .execute(&mut *tx)
+            .await?;
+
+        sqlx::query!("DELETE FROM connections WHERE station_id = ?1", internal_id)
             .execute(&mut *tx)
             .await?;
 
@@ -145,7 +171,7 @@ async fn upsert_stations(state: &Arc<AppState>, stations: Vec<crate::ocm::types:
                 sqlx::query!(
                     r#"
                     INSERT INTO connections (
-                        id, station_id,
+                        ocm_connection_id, station_id,
                         connection_type_id, connection_type, formal_name,
                         level_id, level_title, is_fast_charge,
                         current_type_id, current_type,
@@ -155,9 +181,13 @@ async fn upsert_stations(state: &Arc<AppState>, stations: Vec<crate::ocm::types:
                         ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8,
                         ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17
                     )
+                    ON CONFLICT(ocm_connection_id) DO UPDATE SET
+                        station_id = excluded.station_id,
+                        power_kw = excluded.power_kw,
+                        is_operational = excluded.is_operational
                     "#,
                     conn.id,
-                    station.id,
+                    internal_id,
                     conn_type_id,
                     conn_type_title,
                     formal_name,
