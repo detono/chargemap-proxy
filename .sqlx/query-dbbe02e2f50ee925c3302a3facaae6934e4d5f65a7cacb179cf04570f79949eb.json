@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM stations WHERE primary_source = 'flanders'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "dbbe02e2f50ee925c3302a3facaae6934e4d5f65a7cacb179cf04570f79949eb"
+}
