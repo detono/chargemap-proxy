@@ -48,3 +48,4 @@ coverage/
 /data/
 /chargeapi.db*
 /query*
+.sqlx/*
