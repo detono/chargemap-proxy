@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT connection_type, power_kw, is_fast_charge FROM connections LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "connection_type",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "power_kw",
+        "ordinal": 1,
+        "type_info": "Float"
+      },
+      {
+        "name": "is_fast_charge",
+        "ordinal": 2,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "5925ee088f5e335682305b8c83284cbc09e09db3d1929a4cacfa3a936d3b7ff9"
+}
