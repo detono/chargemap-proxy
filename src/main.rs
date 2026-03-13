@@ -6,24 +6,19 @@ use std::sync::Arc;
 use anyhow::Context;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use chargemap_proxy::AppState;
+use chargemap_proxy::config;
 
-mod auth;
-mod config;
-mod models;
-mod ocm;
-mod routes;
-mod error;
-mod flanders;
-mod osm;
-mod utils;
 
-pub struct AppState {
-    pub ocm_api_key: String,
-    pub app_api_key: String,
-    pub db: sqlx::SqlitePool,
-    pub config: config::AppConfig,
-    pub http_client: reqwest::Client,
-}
+pub mod models;
+pub mod ocm;
+pub mod flanders;
+pub mod osm;
+pub mod utils;
+pub mod error;
+pub mod auth;
+pub mod routes;
+
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
