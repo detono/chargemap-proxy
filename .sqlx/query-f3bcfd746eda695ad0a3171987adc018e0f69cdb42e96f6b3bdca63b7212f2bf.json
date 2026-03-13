@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT address_title FROM stations WHERE ocm_id = 12345",
+  "describe": {
+    "columns": [
+      {
+        "name": "address_title",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "f3bcfd746eda695ad0a3171987adc018e0f69cdb42e96f6b3bdca63b7212f2bf"
+}
