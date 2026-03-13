@@ -5,6 +5,9 @@ pub struct AppConfig {
     pub server: ServerConfig,
     pub cache: CacheConfig,
     pub location: LocationConfig,
+    pub ocm: OpenChargeMapConfig,
+    pub osm: OsmConfig,
+
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -23,6 +26,16 @@ pub struct LocationConfig {
     pub latitude: f64,
     pub longitude: f64,
     pub radius_km: u32,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct OpenChargeMapConfig {
+    pub url: String
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct OsmConfig {
+    pub url: String
 }
 
 pub fn load() -> Result<AppConfig, config::ConfigError> {

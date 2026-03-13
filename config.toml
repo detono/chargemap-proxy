@@ -10,6 +10,12 @@ latitude = 51.0543
 longitude = 3.7174
 radius_km = 30
 
+[ocm]
+url = "https://api.openchargemap.io/v3/poi"
+
+[osm]
+url = "https://overpass.kumi.systems/api/interpreter"
+
 [filters]
 # Optional: pre-filter what gets stored at all
 # Leave empty to store everything OCM returns

@@ -10,11 +10,10 @@ pub async fn sync_once(state: &Arc<AppState>) -> anyhow::Result<usize> {
     )
     .fetch_optional(&state.db)
     .await?;
-
-
-
+    
     let stations = fetch_stations(
         &state.http_client,
+        &state.config.ocm.url,
         &state.ocm_api_key,
         state.config.location.latitude,
         state.config.location.longitude,

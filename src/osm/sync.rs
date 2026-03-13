@@ -55,7 +55,7 @@ pub async fn sync_osm(state: Arc<AppState>) -> Result<usize> {
     info!("Fetching OSM charging stations...");
 
     let response = state.http_client
-        .post("https://overpass.kumi.systems/api/interpreter")
+        .post(&state.config.osm.url)
         .body(query)
         .send()
         .await?
