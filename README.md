@@ -1,7 +1,8 @@
 # Chargemap Proxy
 [![Docker Version](https://img.shields.io/docker/v/detono/chargemap-proxy?style=flat-square)](https://hub.docker.com/r/detono/chargemap-proxy)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/detono/chargemap-proxy/deploy.yml?branch=main&style=flat-square)](https://github.com/detono/chargemap-proxy/actions)
-[![Tests](https://img.shields.io/github/actions/workflow/status/detono/chargemap-proxy/main.yml?branch=main&label=tests&style=flat-square)](https://github.com/detono/chargemap-proxy/actions)
+[![Tests](https://img.shields.io/github/actions/workflow/status/detono/chargemap-proxy/deploy.yml?branch=main&label=tests&style=flat-square)](https://github.com/detono/chargemap-proxy/actions)
+[![Codecov](https://img.shields.io/codecov/c/github/detono/chargemap-proxy?style=flat-square&logo=codecov)](https://app.codecov.io/gh/detono/chargemap-proxy)
 [![Docker Pulls](https://img.shields.io/docker/pulls/detono/chargemap-proxy?style=flat-square)](https://hub.docker.com/r/detono/chargemap-proxy)
 [![Image Size](https://img.shields.io/docker/image-size/detono/chargemap-proxy/latest?style=flat-square)](https://hub.docker.com/r/detono/chargemap-proxy)
 [![Rust Version](https://img.shields.io/badge/rust-1.94.0-blue.svg?style=flat-square&logo=rust)](https://github.com/detono/chargemap-proxy)
