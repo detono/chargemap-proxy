@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT INTO sync_state (source, last_synced_at)\n        VALUES ('ocm', datetime('now'))\n        ON CONFLICT(source) DO UPDATE SET last_synced_at = datetime('now')\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "df4c8f47178852a0b6e097be4b241011e5acbad87f6a27301bf294aac0350b77"
+}

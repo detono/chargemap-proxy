@@ -45,3 +45,5 @@ coverage/
 
 # Rustfmt backup
 **/*.rs.bk
+/data/
+/chargeapi.db*

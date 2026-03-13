@@ -6,11 +6,12 @@ use axum::{routing::get, Router};
 use serde::Deserialize;
 use std::sync::Arc;
 use crate::error::AppError;
+use crate::utils::haversine_km;
 
 pub fn station_routes() -> Router<Arc<AppState>> {
     Router::new()
         .route("/stations", get(list_stations))
-        .route("/stations/:id", get(get_station))
+        .route("/stations/{id}", get(get_station))
 }
 
 #[derive(Debug, Deserialize)]
@@ -249,30 +250,10 @@ async fn get_station(
     })))
 }
 
-fn haversine_km(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> f64 {
-    let r = 6371.0;
-    let dlat = (lat2 - lat1).to_radians();
-    let dlon = (lon2 - lon1).to_radians();
-    let a = (dlat / 2.0).sin().powi(2)
-        + lat1.to_radians().cos() * lat2.to_radians().cos() * (dlon / 2.0).sin().powi(2);
-    r * 2.0 * a.sqrt().asin()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_haversine_same_point() {
-        let dist = haversine_km(51.0543, 3.7174, 51.0543, 3.7174);
-        assert_eq!(dist, 0.0);
-    }
-
-    #[test]
-    fn test_haversine_ghent_to_brussels() {
-        let dist = haversine_km(51.0543, 3.7174, 50.8503, 4.3517);
-        assert!((dist - 50.0).abs() < 2.0, "Expected ~50km, got {}", dist);
-    }
 
     #[test]
     fn test_format_address_full() {

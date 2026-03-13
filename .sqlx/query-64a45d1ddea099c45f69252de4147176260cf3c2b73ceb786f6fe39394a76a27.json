@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n                INSERT INTO stations (\n                    operator_title, address_line1, town, postcode,\n                    latitude, longitude, is_operational, primary_source\n                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, 1, 'flanders')\n                ON CONFLICT(address_line1, postcode, operator_title, latitude, longitude) DO UPDATE SET\n                    cached_at = datetime('now')\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 6
+    },
+    "nullable": []
+  },
+  "hash": "64a45d1ddea099c45f69252de4147176260cf3c2b73ceb786f6fe39394a76a27"
+}

@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            SELECT id FROM stations\n            WHERE address_line1 = ?1 AND postcode = ?2\n              AND latitude = ?3 AND longitude = ?4\n              AND (operator_title = ?5 OR (operator_title IS NULL AND ?5 IS NULL))\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "6d4040718c611ae424aef62e0494c289882f1919d614c02f61f14aac91a6bad7"
+}
