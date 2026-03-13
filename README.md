@@ -1,8 +1,13 @@
 # Chargemap Proxy
 [![Docker Version](https://img.shields.io/docker/v/detono/chargemap-proxy?style=flat-square)](https://hub.docker.com/r/detono/chargemap-proxy)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/detono/chargemap-proxy/deploy.yml?branch=main&style=flat-square)](https://github.com/detono/chargemap-proxy/actions)
+[![Tests](https://img.shields.io/github/actions/workflow/status/detono/chargemap-proxy/deploy.yml?branch=main&label=tests&style=flat-square)](https://github.com/detono/chargemap-proxy/actions)
+[![Codecov](https://img.shields.io/codecov/c/github/detono/chargemap-proxy?style=flat-square&logo=codecov)](https://app.codecov.io/gh/detono/chargemap-proxy)
 [![Docker Pulls](https://img.shields.io/docker/pulls/detono/chargemap-proxy?style=flat-square)](https://hub.docker.com/r/detono/chargemap-proxy)
 [![Image Size](https://img.shields.io/docker/image-size/detono/chargemap-proxy/latest?style=flat-square)](https://hub.docker.com/r/detono/chargemap-proxy)
+[![Rust Version](https://img.shields.io/badge/rust-1.94.0-blue.svg?style=flat-square&logo=rust)](https://github.com/detono/chargemap-proxy)
+![License](https://img.shields.io/github/license/detono/chargemap-proxy?style=flat-square)
+[![Support Tono on Ko-fi](https://img.shields.io/badge/Support_Tono-Tea-BD8C5E?style=flat-square&logo=ko-fi&logoColor=white)](https://ko-fi.com/detono)
 
 A lightweight, blisteringly fast Rust/Axum API that caches EV charging station data from [Open Charge Map](https://openchargemap.org), [OpenStreetMap](https://www.openstreetmap.org), and a local CSV dataset (e.g. [Flanders's official EV charger data](https://www.vlaanderen.be/datavindplaats/catalogus/laadpunten-voor-elektrische-voertuigen)) into a local SQLite database and serves it to your clients.
 
