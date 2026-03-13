@@ -1,12 +1,10 @@
-use axum::{Router, middleware};
 use dotenvy::dotenv;
 use std::env;
 use std::str::FromStr;
 use std::sync::Arc;
 use anyhow::Context;
-use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use chargemap_proxy::AppState;
+use chargemap_proxy::{build_router, AppState};
 use chargemap_proxy::config;
 
 
@@ -66,21 +64,7 @@ async fn main() -> anyhow::Result<()> {
         http_client: reqwest::Client::new(),
     });
 
-
-
-    // Build router
-    let protected = Router::new()
-        .merge(routes::station_routes())
-        .merge(routes::admin_routes())
-        .layer(middleware::from_fn_with_state(
-            state.clone(),
-            auth::require_api_key,
-        ));
-
-    let app = Router::new()
-        .merge(routes::health_routes())  
-        .merge(protected)
-        .layer(TraceLayer::new_for_http());
+    let app = build_router(state.clone());
 
     let addr = format!("0.0.0.0:{}", cfg.server.port);
     let listener = tokio::net::TcpListener::bind(&addr).await?;
@@ -111,7 +95,7 @@ async fn main() -> anyhow::Result<()> {
         );
     });
 
-    axum::serve(listener, app.with_state(state.clone())).await?;
+    axum::serve(listener, app).await?;
 
     Ok(())
 }

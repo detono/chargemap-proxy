@@ -1,3 +1,7 @@
+use std::sync::Arc;
+use axum::{middleware, Router};
+use tower_http::trace::TraceLayer;
+
 pub mod auth;
 pub mod config;
 pub mod error;
@@ -14,4 +18,21 @@ pub struct AppState {
     pub db: sqlx::SqlitePool,
     pub config: config::AppConfig,
     pub http_client: reqwest::Client,
+}
+
+// src/lib.rs
+pub fn build_router(state: Arc<AppState>) -> Router {
+    let protected = Router::new()
+        .merge(routes::station_routes())
+        .merge(routes::admin_routes())
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            auth::require_api_key,
+        ));
+
+    Router::new()
+        .merge(routes::health_routes())
+        .merge(protected)
+        .layer(TraceLayer::new_for_http())
+        .with_state(state)
 }
