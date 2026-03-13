@@ -21,6 +21,7 @@ csv = "1.4.0"
 
 [dev-dependencies]
 wiremock = "0.6"
+tempfile = "3"
 
 [lib]
 name = "chargemap_proxy"

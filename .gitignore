@@ -47,5 +47,3 @@ coverage/
 **/*.rs.bk
 /data/
 /chargeapi.db*
-/query*
-.sqlx/*

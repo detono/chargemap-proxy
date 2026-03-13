@@ -35,9 +35,11 @@ fn group_into_stations(rows: Vec<FlandersRow>) -> HashMap<String, Vec<FlandersRo
     map
 }
 
-pub async fn sync_flanders(state: Arc<AppState>) -> Result<usize> {
-    let csv_path = std::env::var("FLANDERS_CSV_PATH")
-        .unwrap_or_else(|_| "./data/chargers.csv".to_string());
+pub async fn sync_flanders(state: Arc<AppState>, csv_path: Option<&str>) -> Result<usize> {
+    let csv_path = csv_path
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| std::env::var("FLANDERS_CSV_PATH")
+            .unwrap_or_else(|_| "./data/chargers.csv".to_string()));
 
     info!("Loading Flanders CSV from {}", csv_path);
 

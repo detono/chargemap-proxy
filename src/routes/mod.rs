@@ -1,4 +1,4 @@
-mod admin;
+pub mod admin;
 mod stations;
 mod health;
 

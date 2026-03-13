@@ -89,7 +89,7 @@ async fn main() -> anyhow::Result<()> {
     let startup_state = state.clone();
     tokio::spawn(async move {
         // Sequenced startup syncs
-        match flanders::sync::sync_flanders(startup_state.clone()).await {
+        match flanders::sync::sync_flanders(startup_state.clone(), None).await {
             Ok(n)  => tracing::info!("Flanders sync complete: {} stations", n),
             Err(e) => tracing::error!("Flanders sync failed: {e}"),
         }

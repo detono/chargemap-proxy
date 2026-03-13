@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT last_synced_at FROM sync_state WHERE source = 'ocm'",
+  "describe": {
+    "columns": [
+      {
+        "name": "last_synced_at",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "19f118d487c1e88884c5455ddf29fe9064012ac1d3a65416e2957aea0ace2a6f"
+}

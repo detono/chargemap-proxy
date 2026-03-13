@@ -8,7 +8,7 @@ pub fn admin_routes() -> Router<Arc<AppState>> {
         .route("/admin/refresh", post(refresh_cache))
 }
 
-async fn refresh_cache(
+pub async fn refresh_cache(
     State(state): State<Arc<AppState>>,
 ) -> StatusCode {
     //Refresh cache of OCM
@@ -37,7 +37,7 @@ async fn refresh_cache(
             .await
         {
             Ok(_) => {
-                match flanders::sync::sync_flanders(flanders_state).await {
+                match flanders::sync::sync_flanders(flanders_state, None).await {
                     Ok(n)  => tracing::info!("Manual Flanders refresh: {} stations", n),
                     Err(e) => tracing::error!("Manual Flanders refresh failed: {e}"),
                 }

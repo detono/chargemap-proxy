@@ -90,9 +90,11 @@ pub async fn sync_osm(state: Arc<AppState>) -> Result<usize> {
             .find(|(k, _)| k.starts_with("socket:") && k.ends_with(":output"))
             .and_then(|(_, v)| parse_power_kw(v));
 
-        // Connector type — take first socket:* key (excluding :output/:number variants)
+        // Connector type — take first socket:* key that isn't a sub-property (:output, :number etc)
         let connection_type = node.tags.iter()
-            .find(|(k, _)| k.starts_with("socket:") && !k.contains(':'))
+            .find(|(k, _)| {
+                k.starts_with("socket:") && k.matches(':').count() == 1
+            })
             .map(|(k, _)| normalize_connector_type(&k.replace("socket:", "")).to_string());
 
         let is_fast_charge: Option<i64> = power_kw.map(|kw| if kw >= 50.0 { 1 } else { 0 });
