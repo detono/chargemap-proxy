@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO station_sources (station_id, source, source_id)\n                   VALUES (?1, 'flanders', ?2)\n                   ON CONFLICT(source, source_id) DO UPDATE SET last_seen = datetime('now')",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "42ce393521a34c7c4ff8f369c17c86f213ebc642a5fd2ee56063abec0109d43e"
+}

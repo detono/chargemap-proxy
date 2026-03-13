@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT id, latitude, longitude FROM stations\n        WHERE latitude  BETWEEN ?1 AND ?2\n          AND longitude BETWEEN ?3 AND ?4\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "latitude",
+        "ordinal": 1,
+        "type_info": "Float"
+      },
+      {
+        "name": "longitude",
+        "ordinal": 2,
+        "type_info": "Float"
+      }
+    ],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": [
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "3c7ce0ccea45812f4152ae78335641f35da15c74a27b1bcad471f0df2a7b7d04"
+}

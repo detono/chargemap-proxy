@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n                    INSERT INTO connections (\n                        ocm_connection_id, station_id,\n                        connection_type_id, connection_type, formal_name,\n                        level_id, level_title, is_fast_charge,\n                        current_type_id, current_type,\n                        amps, voltage, power_kw, quantity,\n                        status_type_id, is_operational, comments\n                    ) VALUES (\n                        ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8,\n                        ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17\n                    )\n                    ON CONFLICT(ocm_connection_id) DO UPDATE SET\n                        station_id = excluded.station_id,\n                        power_kw = excluded.power_kw,\n                        is_operational = excluded.is_operational\n                    ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 17
+    },
+    "nullable": []
+  },
+  "hash": "db0e4a6cd8ed357670d59950ab5b91d646f1ab205ec5730e1c91a7db27749d05"
+}
