@@ -24,8 +24,6 @@ pub async fn fetch_stations(
         url.push_str(&format!("&modifiedsince={}", since));
     }
 
-    info!("Fetching stations from {}", url);
-
     let stations: Vec<OcmStation> = client
         .get(&url)
         .send()
