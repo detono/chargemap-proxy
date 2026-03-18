@@ -14,7 +14,13 @@ pub struct StationResponse {
     pub connectors: Vec<ConnectorResponse>,
     pub distance_km: Option<f64>,
 }
-
+#[derive(Debug, Serialize)]
+pub struct PaginatedStations {
+    pub total: i64,
+    pub limit: i64,
+    pub offset: i64,
+    pub data: Vec<StationResponse>,
+}
 #[derive(Debug, Serialize)]
 pub struct ConnectorResponse {
     pub type_name: Option<String>,

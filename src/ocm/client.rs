@@ -1,9 +1,8 @@
 // src/ocm/client.rs
 
-use reqwest::Client;
-use anyhow::Result;
-use tracing::info;
 use crate::ocm::types::OcmStation;
+use anyhow::Result;
+use reqwest::Client;
 
 pub async fn fetch_stations(
     client: &Client,

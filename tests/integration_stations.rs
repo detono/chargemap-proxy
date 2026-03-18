@@ -5,6 +5,11 @@ use chargemap_proxy::build_router;
 
 mod common;
 
+fn parse_paginated(body: &[u8]) -> serde_json::Value {
+    let json: serde_json::Value = serde_json::from_slice(body).unwrap();
+    json
+}
+
 async fn insert_test_station(
     db: &sqlx::SqlitePool,
     ocm_id: i64,
@@ -107,9 +112,11 @@ async fn test_list_stations_radius_filter() {
     assert_eq!(response.status(), StatusCode::OK);
 
     let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
-    let stations: serde_json::Value = serde_json::from_slice(&body).unwrap();
-    assert_eq!(stations.as_array().unwrap().len(), 1);
-    assert_eq!(stations[0]["address"], "Kiezelweg 1, Gent, 9000");
+    let json = parse_paginated(&body);
+
+    assert_eq!(json["data"].as_array().unwrap().len(), 1);
+    assert_eq!(json["total"], 1);
+    assert_eq!(json["data"][0]["address"], "Kiezelweg 1, Gent, 9000");
 }
 
 #[tokio::test]
@@ -136,9 +143,10 @@ async fn test_list_stations_min_power_filter() {
         .unwrap();
 
     let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
-    let stations: serde_json::Value = serde_json::from_slice(&body).unwrap();
-    assert_eq!(stations.as_array().unwrap().len(), 1);
-    assert_eq!(stations[0]["address"], "Stationstraat 5, Gent, 9000");
+    let json = parse_paginated(&body);
+    assert_eq!(json["data"].as_array().unwrap().len(), 1);
+    assert_eq!(json["total"], 1);
+    assert_eq!(json["data"][0]["address"], "Stationstraat 5, Gent, 9000");
 }
 
 #[tokio::test]
@@ -165,9 +173,132 @@ async fn test_list_stations_fast_charge_filter() {
         .unwrap();
 
     let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
-    let stations: serde_json::Value = serde_json::from_slice(&body).unwrap();
-    assert_eq!(stations.as_array().unwrap().len(), 1);
-    assert_eq!(stations[0]["address"], "Stationstraat 5, Gent, 9000");
+    let json = parse_paginated(&body);
+    assert_eq!(json["data"].as_array().unwrap().len(), 1);
+    assert_eq!(json["total"], 1);
+    assert_eq!(json["data"][0]["address"], "Stationstraat 5, Gent, 9000");
+}
+
+#[tokio::test]
+async fn test_pagination_limit_and_offset() {
+    let state = common::setup_test_state("http://unused", "http://unused").await;
+
+    // Insert 5 stations
+    for i in 1..=5 {
+        let id = insert_test_station(&state.db, i, &format!("Straat {}", i), "9000", "Gent", 51.05 + i as f64 * 0.01, 3.71, "Allego").await;
+        insert_test_connection(&state.db, id, "Type 2 (Socket Only)", 22.0, 0).await;
+    }
+
+    let app = build_router(state.clone());
+
+    // First page
+    let response = app.clone()
+        .oneshot(
+            Request::builder()
+                .uri("/stations?limit=2&offset=0")
+                .header("x-api-key", "test-app-key")
+                .body(Body::empty())
+                .unwrap()
+        )
+        .await
+        .unwrap();
+
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let json = parse_paginated(&body);
+    assert_eq!(json["total"], 5);
+    assert_eq!(json["limit"], 2);
+    assert_eq!(json["offset"], 0);
+    assert_eq!(json["data"].as_array().unwrap().len(), 2);
+
+    // Second page
+    let response = app.clone()
+        .oneshot(
+            Request::builder()
+                .uri("/stations?limit=2&offset=2")
+                .header("x-api-key", "test-app-key")
+                .body(Body::empty())
+                .unwrap()
+        )
+        .await
+        .unwrap();
+
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let json = parse_paginated(&body);
+    assert_eq!(json["total"], 5);
+    assert_eq!(json["data"].as_array().unwrap().len(), 2);
+
+    // Last page (partial)
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/stations?limit=2&offset=4")
+                .header("x-api-key", "test-app-key")
+                .body(Body::empty())
+                .unwrap()
+        )
+        .await
+        .unwrap();
+
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let json = parse_paginated(&body);
+    assert_eq!(json["total"], 5);
+    assert_eq!(json["data"].as_array().unwrap().len(), 1);
+}
+
+#[tokio::test]
+async fn test_pagination_offset_beyond_total() {
+    let state = common::setup_test_state("http://unused", "http://unused").await;
+
+    let id = insert_test_station(&state.db, 1, "Straat 1", "9000", "Gent", 51.05, 3.71, "Allego").await;
+    insert_test_connection(&state.db, id, "Type 2 (Socket Only)", 22.0, 0).await;
+
+    let app = build_router(state.clone());
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/stations?limit=10&offset=999")
+                .header("x-api-key", "test-app-key")
+                .body(Body::empty())
+                .unwrap()
+        )
+        .await
+        .unwrap();
+
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let json = parse_paginated(&body);
+    assert_eq!(json["total"], 1);
+    assert_eq!(json["data"].as_array().unwrap().len(), 0);
+}
+
+#[tokio::test]
+async fn test_total_reflects_connector_filter() {
+    let state = common::setup_test_state("http://unused", "http://unused").await;
+
+    // 3 stations: 2 with fast charge, 1 without
+    for i in 1..=2 {
+        let id = insert_test_station(&state.db, i, &format!("Fast Street {}", i), "9000", "Gent", 51.05, 3.71, "Allego").await;
+        insert_test_connection(&state.db, id, "CCS (Type 2)", 150.0, 1).await;
+    }
+    let id = insert_test_station(&state.db, 3, "Slow Street 1", "9000", "Gent", 51.05, 3.71, "Allego").await;
+    insert_test_connection(&state.db, id, "Type 2 (Socket Only)", 22.0, 0).await;
+
+    let app = build_router(state.clone());
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/stations?fast_charge_only=true&limit=1&offset=0")
+                .header("x-api-key", "test-app-key")
+                .body(Body::empty())
+                .unwrap()
+        )
+        .await
+        .unwrap();
+
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let json = parse_paginated(&body);
+    // total should be 2 (post-filter), not 3 (raw)
+    assert_eq!(json["total"], 2);
+    assert_eq!(json["data"].as_array().unwrap().len(), 1);
 }
 
 #[tokio::test]

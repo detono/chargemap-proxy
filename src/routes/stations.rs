@@ -6,6 +6,7 @@ use axum::{routing::get, Router};
 use serde::Deserialize;
 use std::sync::Arc;
 use crate::error::AppError;
+use crate::models::PaginatedStations;
 use crate::utils::haversine_km;
 
 pub fn station_routes() -> Router<Arc<AppState>> {
@@ -23,35 +24,35 @@ pub struct StationFilters {
     pub lat: Option<f64>,
     pub lon: Option<f64>,
     pub radius_km: Option<f64>,
+    pub limit: Option<i64>,   // default: 200
+    pub offset: Option<i64>,  // default: 0
 }
 
 async fn list_stations(
     State(state): State<Arc<AppState>>,
     Query(filters): Query<StationFilters>,
-) -> Result<Json<Vec<StationResponse>>, AppError> {
+) -> Result<Json<PaginatedStations>, AppError> {
     let connector_type_filter = filters.connector_type.as_deref().unwrap_or("");
     let operational_only = filters.operational_only.unwrap_or(true);
+    let limit = filters.limit.unwrap_or(200);
+    let offset = filters.offset.unwrap_or(0);
 
-    // Calculate Bounding Box if radius is provided
     let mut min_lat: Option<f64> = None;
     let mut max_lat: Option<f64> = None;
     let mut min_lon: Option<f64> = None;
     let mut max_lon: Option<f64> = None;
 
     if let (Some(lat), Some(lon), Some(radius)) = (filters.lat, filters.lon, filters.radius_km) {
-        // Roughly 1 degree of lat = 111km
         let lat_delta = radius / 111.0;
-        // Lon delta depends on latitude
         let lon_delta = radius / (111.0 * lat.to_radians().cos().abs());
-
         min_lat = Some(lat - lat_delta);
         max_lat = Some(lat + lat_delta);
         min_lon = Some(lon - lon_delta);
         max_lon = Some(lon + lon_delta);
     }
 
-    // If coordinates are provided, use bounding box approach
-    let stations = sqlx::query!(
+    // Fetch ALL matching stations (no pagination yet) to count after connector filtering
+    let all_stations = sqlx::query!(
         r#"
         SELECT
             id, address_title, address_line1, town, postcode,
@@ -71,15 +72,15 @@ async fn list_stations(
         min_lon,
         max_lon
     )
-    .fetch_all(&state.db)
-    .await?;
+        .fetch_all(&state.db)
+        .await?;
 
-    if stations.is_empty() {
-        return Ok(Json(vec![]));
+    if all_stations.is_empty() {
+        return Ok(Json(PaginatedStations { total: 0, limit, offset, data: vec![] }));
     }
 
-    let station_ids: Vec<i64> = stations.iter().map(|s| s.id).collect();
-    let ids_json = serde_json::to_string(&station_ids)?;
+    let all_ids: Vec<i64> = all_stations.iter().map(|s| s.id).collect();
+    let ids_json = serde_json::to_string(&all_ids)?;
 
     let all_connectors = sqlx::query!(
         r#"
@@ -95,23 +96,20 @@ async fn list_stations(
         .fetch_all(&state.db)
         .await?;
 
-    // Group connectors by station_id in memory
+    // Group + apply connector-level filters
     let mut connector_map: HashMap<i64, Vec<ConnectorResponse>> = HashMap::new();
     for c in all_connectors {
         let entry = connector_map.entry(c.station_id).or_default();
 
-        // Apply connector-level filters here
         if let Some(min_kw) = filters.min_power_kw {
             if c.power_kw.unwrap_or(0.0) < min_kw { continue; }
         }
-
         if !connector_type_filter.is_empty() {
             let matches = c.connection_type.as_deref()
                 .map(|t| t.to_lowercase().contains(&connector_type_filter.to_lowercase()))
                 .unwrap_or(false);
             if !matches { continue; }
         }
-
         if filters.fast_charge_only == Some(true) && c.is_fast_charge != Some(1) {
             continue;
         }
@@ -129,9 +127,9 @@ async fn list_stations(
         });
     }
 
-    // 3. Final Assembly
-    let mut result = vec![];
-    for row in stations {
+    // Build full filtered + sorted result first
+    let mut full_result: Vec<StationResponse> = vec![];
+    for row in all_stations {
         let connectors = connector_map.remove(&row.id).unwrap_or_default();
         if connectors.is_empty() { continue; }
 
@@ -139,19 +137,13 @@ async fn list_stations(
             (Some(lat), Some(lon)) => Some(haversine_km(lat, lon, row.latitude, row.longitude)),
             _ => None,
         };
-
         if let (Some(dist), Some(radius)) = (distance_km, filters.radius_km) {
             if dist > radius { continue; }
         }
 
-        let address = format_address(
-            &row.address_line1,
-            &row.town,
-            &row.postcode,
-            &row.address_title
-        );
+        let address = format_address(&row.address_line1, &row.town, &row.postcode, &row.address_title);
 
-        result.push(StationResponse {
+        full_result.push(StationResponse {
             id: row.id,
             name: row.address_title,
             address,
@@ -167,10 +159,19 @@ async fn list_stations(
     }
 
     if filters.lat.is_some() {
-        result.sort_by(|a, b| a.distance_km.partial_cmp(&b.distance_km).unwrap_or(std::cmp::Ordering::Equal));
+        full_result.sort_by(|a, b| a.distance_km.partial_cmp(&b.distance_km).unwrap_or(std::cmp::Ordering::Equal));
     }
 
-    Ok(Json(result))
+    let total = full_result.len() as i64;
+
+    // Apply pagination after filtering + sorting
+    let page: Vec<StationResponse> = full_result
+        .into_iter()
+        .skip(offset as usize)
+        .take(limit as usize)
+        .collect();
+
+    Ok(Json(PaginatedStations { total, limit, offset, data: page }))
 }
 
 fn format_address(line1: &Option<String>, town: &Option<String>, post: &Option<String>, title: &Option<String>) -> Option<String> {
