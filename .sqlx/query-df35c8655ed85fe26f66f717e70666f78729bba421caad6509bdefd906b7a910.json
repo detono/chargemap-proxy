@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO stations (ocm_id, address_line1, postcode, town, operator_title, latitude, longitude, is_operational, primary_source)\n           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 1, 'ocm')\n           RETURNING id",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 7
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "df35c8655ed85fe26f66f717e70666f78729bba421caad6509bdefd906b7a910"
+}
