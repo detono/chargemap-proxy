@@ -25,7 +25,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      SQLX_OFFLINE: true
+      DATABASE_URL: sqlite:./test.db
     steps:
       - uses: actions/checkout@v4
 
@@ -34,6 +34,15 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
+
+      - name: Install sqlx-cli
+        run: cargo install sqlx-cli --no-default-features --features sqlite
+
+      - name: Create database and run migrations
+        run: cargo sqlx database setup
+
+      - name: Check sqlx cache is up to date
+        run: cargo sqlx prepare --all --check
 
       - name: Install Tarpaulin
         run: cargo install cargo-tarpaulin
