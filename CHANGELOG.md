@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.1](https://github.com/detono/chargemap-proxy/compare/v0.4.0...v0.4.1) (2026-03-18)
+
+
+### Bug Fixes
+
+* modified since queries for integration test ([#17](https://github.com/detono/chargemap-proxy/issues/17)) ([160151c](https://github.com/detono/chargemap-proxy/commit/160151c209721759fde76329582ea191f4bf80e3))
+* modified_since query ([#15](https://github.com/detono/chargemap-proxy/issues/15)) ([02b616e](https://github.com/detono/chargemap-proxy/commit/02b616ea945ca152620c6a45cfe0053b29a10350))
+
 ## [0.4.0](https://github.com/detono/chargemap-proxy/compare/v0.3.0...v0.4.0) (2026-03-18)
 
 
