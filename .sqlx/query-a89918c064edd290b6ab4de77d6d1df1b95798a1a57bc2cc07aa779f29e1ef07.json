@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\n        SELECT\n            id, address_title, address_line1, town, postcode,\n            latitude, longitude, operator_title, usage_cost,\n            is_operational, number_of_points\n        FROM stations\n        WHERE (?1 = 0 OR is_operational = 1)\n          AND (?2 IS NULL OR latitude >= ?2)\n          AND (?3 IS NULL OR latitude <= ?3)\n          AND (?4 IS NULL OR longitude >= ?4)\n          AND (?5 IS NULL OR longitude <= ?5)\n        ORDER BY id\n        ",
+  "query": "\n        SELECT\n            id, address_title, address_line1, town, postcode,\n            latitude, longitude, operator_title, usage_cost,\n            is_operational, number_of_points\n        FROM stations\n        WHERE (?1 = 0 OR is_operational = 1)\n          AND (?2 IS NULL OR latitude >= ?2)\n          AND (?3 IS NULL OR latitude <= ?3)\n          AND (?4 IS NULL OR longitude >= ?4)\n          AND (?5 IS NULL OR longitude <= ?5)\n          AND (?6 IS NULL OR cached_at >= ?6)\n        ORDER BY id\n        ",
   "describe": {
     "columns": [
       {
@@ -60,7 +60,7 @@
       }
     ],
     "parameters": {
-      "Right": 5
+      "Right": 6
     },
     "nullable": [
       false,
@@ -76,5 +76,5 @@
       true
     ]
   },
-  "hash": "908ae3b5db7bbdc1bab6261286395e132bb46e3b3be21de8196c799cd67b5b1f"
+  "hash": "a89918c064edd290b6ab4de77d6d1df1b95798a1a57bc2cc07aa779f29e1ef07"
 }
