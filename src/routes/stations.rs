@@ -26,6 +26,7 @@ pub struct StationFilters {
     pub radius_km: Option<f64>,
     pub limit: Option<i64>,   // default: 200
     pub offset: Option<i64>,  // default: 0
+    pub modified_since: Option<String>
 }
 
 async fn list_stations(
@@ -36,11 +37,13 @@ async fn list_stations(
     let operational_only = filters.operational_only.unwrap_or(true);
     let limit = filters.limit.unwrap_or(200);
     let offset = filters.offset.unwrap_or(0);
+    let modified_since = filters.modified_since.as_deref();
 
     let mut min_lat: Option<f64> = None;
     let mut max_lat: Option<f64> = None;
     let mut min_lon: Option<f64> = None;
     let mut max_lon: Option<f64> = None;
+
 
     if let (Some(lat), Some(lon), Some(radius)) = (filters.lat, filters.lon, filters.radius_km) {
         let lat_delta = radius / 111.0;
@@ -64,13 +67,15 @@ async fn list_stations(
           AND (?3 IS NULL OR latitude <= ?3)
           AND (?4 IS NULL OR longitude >= ?4)
           AND (?5 IS NULL OR longitude <= ?5)
+          AND (?6 IS NULL OR cached_at >= ?6)
         ORDER BY id
         "#,
         operational_only,
         min_lat,
         max_lat,
         min_lon,
-        max_lon
+        max_lon,
+        modified_since,
     )
         .fetch_all(&state.db)
         .await?;

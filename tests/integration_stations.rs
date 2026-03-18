@@ -368,3 +368,123 @@ async fn test_health_endpoint() {
 
     assert_eq!(response.status(), StatusCode::OK);
 }
+
+async fn insert_test_station_with_cached_at(
+    db: &sqlx::SqlitePool,
+    ocm_id: i64,
+    address: &str,
+    postcode: &str,
+    town: &str,
+    lat: f64,
+    lon: f64,
+    operator: &str,
+    cached_at: &str,
+) -> i64 {
+    sqlx::query_scalar!(
+        r#"INSERT INTO stations (ocm_id, address_line1, postcode, town, operator_title, latitude, longitude, is_operational, primary_source, cached_at)
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 1, 'ocm', ?8)
+           RETURNING id"#,
+        ocm_id, address, postcode, town, operator, lat, lon, cached_at
+    )
+        .fetch_one(db)
+        .await
+        .unwrap()
+}
+
+#[tokio::test]
+async fn test_modified_since_filters_old_stations() {
+    let state = common::setup_test_state("http://unused", "http://unused").await;
+
+    // Old station, cached before the cutoff
+    let id1 = insert_test_station_with_cached_at(
+        &state.db, 1, "Old Street 1", "9000", "Gent", 51.05, 3.71, "Allego",
+        "2026-01-01T00:00:00Z"
+    ).await;
+    insert_test_connection(&state.db, id1, "Type 2 (Socket Only)", 22.0, 0).await;
+
+    // New station, cached after the cutoff
+    let id2 = insert_test_station_with_cached_at(
+        &state.db, 2, "New Street 1", "9000", "Gent", 51.06, 3.72, "Allego",
+        "2026-03-01T00:00:00Z"
+    ).await;
+    insert_test_connection(&state.db, id2, "Type 2 (Socket Only)", 22.0, 0).await;
+
+    let app = build_router(state.clone());
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/stations?modified_since=2026-02-01T00:00:00Z")
+                .header("x-api-key", "test-app-key")
+                .body(Body::empty())
+                .unwrap()
+        )
+        .await
+        .unwrap();
+
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let json = parse_paginated(&body);
+    assert_eq!(json["total"], 1);
+    assert_eq!(json["data"][0]["address"], "New Street 1, Gent, 9000");
+}
+
+#[tokio::test]
+async fn test_modified_since_returns_all_when_omitted() {
+    let state = common::setup_test_state("http://unused", "http://unused").await;
+
+    let id1 = insert_test_station_with_cached_at(
+        &state.db, 1, "Old Street 1", "9000", "Gent", 51.05, 3.71, "Allego",
+        "2026-01-01T00:00:00Z"
+    ).await;
+    insert_test_connection(&state.db, id1, "Type 2 (Socket Only)", 22.0, 0).await;
+
+    let id2 = insert_test_station_with_cached_at(
+        &state.db, 2, "New Street 1", "9000", "Gent", 51.06, 3.72, "Allego",
+        "2026-03-01T00:00:00Z"
+    ).await;
+    insert_test_connection(&state.db, id2, "Type 2 (Socket Only)", 22.0, 0).await;
+
+    let app = build_router(state.clone());
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/stations")
+                .header("x-api-key", "test-app-key")
+                .body(Body::empty())
+                .unwrap()
+        )
+        .await
+        .unwrap();
+
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let json = parse_paginated(&body);
+    assert_eq!(json["total"], 2);
+}
+
+#[tokio::test]
+async fn test_modified_since_exact_boundary() {
+    let state = common::setup_test_state("http://unused", "http://unused").await;
+
+    // Station cached exactly at the cutoff timestamp
+    let id = insert_test_station_with_cached_at(
+        &state.db, 1, "Boundary Street 1", "9000", "Gent", 51.05, 3.71, "Allego",
+        "2026-02-01T00:00:00Z"
+    ).await;
+    insert_test_connection(&state.db, id, "Type 2 (Socket Only)", 22.0, 0).await;
+
+    let app = build_router(state.clone());
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/stations?modified_since=2026-02-01T00:00:00Z")
+                .header("x-api-key", "test-app-key")
+                .body(Body::empty())
+                .unwrap()
+        )
+        .await
+        .unwrap();
+
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let json = parse_paginated(&body);
+    // >= so exact boundary should be included
+    assert_eq!(json["total"], 1);
+}
