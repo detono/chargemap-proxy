@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/detono/chargemap-proxy/compare/v0.3.0...v0.4.0) (2026-03-18)
+
+
+### Features
+
+* added modified_since param in station request ([#13](https://github.com/detono/chargemap-proxy/issues/13)) ([90a4314](https://github.com/detono/chargemap-proxy/commit/90a4314fd1c1c8e050a2b87255a38bd591c208ee))
+
 ## [0.3.0](https://github.com/detono/chargemap-proxy/compare/v0.2.0...v0.3.0) (2026-03-18)
 
 
