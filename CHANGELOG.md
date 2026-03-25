@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/detono/chargemap-proxy/compare/v0.4.1...v0.5.0) (2026-03-25)
+
+
+### Features
+
+* add compression ([80eab04](https://github.com/detono/chargemap-proxy/commit/80eab0410f585bc33fca8ccd83d902f06fe4b2d1))
+
 ## [0.4.1](https://github.com/detono/chargemap-proxy/compare/v0.4.0...v0.4.1) (2026-03-18)
 
 
