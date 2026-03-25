@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use axum::{middleware, Router};
 use tower_http::trace::TraceLayer;
+use tower_http::compression::CompressionLayer;
 
 pub mod auth;
 pub mod config;
@@ -34,5 +35,6 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         .merge(routes::health_routes())
         .merge(protected)
         .layer(TraceLayer::new_for_http())
+        .layer(CompressionLayer::new())
         .with_state(state)
 }
